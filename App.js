@@ -60,15 +60,15 @@ export default function App() {
         enableSmoothing: true,
       };
 
-      // if (LOAD_MODEL_FROM_BUNDLE) {
-      //   const modelJson = require('./offline_model/model.json');
-      //   const modelWeights1 = require('./offline_model/group1-shard1of2.bin');
-      //   const modelWeights2 = require('./offline_model/group1-shard2of2.bin');
-      //   movenetModelConfig.modelUrl = bundleResourceIO(modelJson, [
-      //     modelWeights1,
-      //     modelWeights2,
-      //   ]);
-      // }
+      if (LOAD_MODEL_FROM_BUNDLE) {
+        const modelJson = require('./offline_model/model.json');
+        const modelWeights1 = require('./offline_model/group1-shard1of2.bin');
+        const modelWeights2 = require('./offline_model/group1-shard2of2.bin');
+        movenetModelConfig.modelUrl = bundleResourceIO(modelJson, [
+          modelWeights1,
+          modelWeights2,
+        ]);
+      }
 
       const model = await posedetection.createDetector(
         posedetection.SupportedModels.MoveNet,
@@ -125,7 +125,104 @@ export default function App() {
     loop();
   };
 
-  // The rest of the code remains the same...
+  const renderPose = () => {
+    if (poses != null && poses.length > 0) {
+      const keypoints = poses[0].keypoints
+        .filter((k) => (k.score ?? 0) > MIN_KEYPOINT_SCORE)
+        .map((k) => {
+          const flipX = IS_ANDROID || cameraType === Camera.Constants.Type.back;
+          const x = flipX ? getOutputTensorWidth() - k.x : k.x;
+          const y = k.y;
+          const cx =
+            (x / getOutputTensorWidth()) *
+            (isPortrait() ? CAM_PREVIEW_WIDTH : CAM_PREVIEW_HEIGHT);
+          const cy =
+            (y / getOutputTensorHeight()) *
+            (isPortrait() ? CAM_PREVIEW_HEIGHT : CAM_PREVIEW_WIDTH);
+          return (
+            <Circle
+              key={`skeletonkp_${k.name}`}
+              cx={cx}
+              cy={cy}
+              r='4'
+              strokeWidth='2'
+              fill='#00AA00'
+              stroke='white'
+            />
+          );
+        });
+
+      return <Svg style={styles.svg}>{keypoints}</Svg>;
+    } else {
+      return <View></View>;
+    }
+  };
+
+  const renderFps = () => {
+    return (
+      <View style={styles.fpsContainer}>
+        <Text>FPS: {fps}</Text>
+      </View>
+    );
+  };
+
+  const renderCameraTypeSwitcher = () => {
+    return (
+      <View
+        style={styles.cameraTypeSwitcher}
+        onTouchEnd={handleSwitchCameraType}
+      >
+        <Text>
+          Switch to{' '}
+          {cameraType === Camera.Constants.Type.front ? 'back' : 'front'} camera
+        </Text>
+      </View>
+    );
+  };
+
+  const handleSwitchCameraType = () => {
+    if (cameraType === Camera.Constants.Type.front) {
+      setCameraType(Camera.Constants.Type.back);
+    } else {
+      setCameraType(Camera.Constants.Type.front);
+    }
+  };
+
+  const isPortrait = () => {
+    return (
+      orientation === ScreenOrientation.Orientation.PORTRAIT_UP ||
+      orientation === ScreenOrientation.Orientation.PORTRAIT_DOWN
+    );
+  };
+
+  const getOutputTensorWidth = () => {
+    return isPortrait() || IS_ANDROID
+      ? OUTPUT_TENSOR_WIDTH
+      : OUTPUT_TENSOR_HEIGHT;
+  };
+
+  const getOutputTensorHeight = () => {
+    return isPortrait() || IS_ANDROID
+      ? OUTPUT_TENSOR_HEIGHT
+      : OUTPUT_TENSOR_WIDTH;
+  };
+
+  const getTextureRotationAngleInDegrees = () => {
+    if (IS_ANDROID) {
+      return 0;
+    }
+
+    switch (orientation) {
+      case ScreenOrientation.Orientation.PORTRAIT_DOWN:
+        return 180;
+      case ScreenOrientation.Orientation.LANDSCAPE_LEFT:
+        return cameraType === Camera.Constants.Type.front ? 270 : 90;
+      case ScreenOrientation.Orientation.LANDSCAPE_RIGHT:
+        return cameraType === Camera.Constants.Type.front ? 90 : 270;
+      default:
+        return 0;
+    }
+  };
 
   if (!tfReady) {
     return (
@@ -160,5 +257,56 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  // The styles remain the same...
+  containerPortrait: {
+    position: 'relative',
+    width: CAM_PREVIEW_WIDTH,
+    height: CAM_PREVIEW_HEIGHT,
+    marginTop: Dimensions.get('window').height / 2 - CAM_PREVIEW_HEIGHT / 2,
+  },
+  containerLandscape: {
+    position: 'relative',
+    width: CAM_PREVIEW_HEIGHT,
+    height: CAM_PREVIEW_WIDTH,
+    marginLeft: Dimensions.get('window').height / 2 - CAM_PREVIEW_HEIGHT / 2,
+  },
+  loadingMsg: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  camera: {
+    width: '100%',
+    height: '100%',
+    zIndex: 1,
+  },
+  svg: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+    zIndex: 30,
+  },
+  fpsContainer: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    width: 80,
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, .7)',
+    borderRadius: 2,
+    padding: 8,
+    zIndex: 20,
+  },
+  cameraTypeSwitcher: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 180,
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, .7)',
+    borderRadius: 2,
+    padding: 8,
+    zIndex: 20,
+  },
 });
