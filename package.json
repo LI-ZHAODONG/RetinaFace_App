@@ -9,19 +9,26 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@mediapipe/pose": "^0.5.1675469404",
+    "@react-native-async-storage/async-storage": "^1.19.2",
     "@react-native-firebase/app": "^18.3.0",
     "@react-navigation/native": "^6.1.7",
     "@react-navigation/stack": "^6.3.17",
     "@tensorflow-models/blazeface": "^0.1.0",
     "@tensorflow-models/face-detection": "^1.0.2",
+    "@tensorflow-models/pose-detection": "^2.1.0",
     "@tensorflow/tfjs": "^2.8.6",
+    "@tensorflow/tfjs-backend-webgpu": "^4.10.0",
+    "@tensorflow/tfjs-react-native": "^0.8.0",
     "expo": "~48.0.18",
     "expo-camera": "~13.2.1",
     "expo-constants": "~14.2.1",
     "expo-face-detector": "~12.1.1",
+    "expo-gl": "^13.0.1",
     "expo-linear-gradient": "~12.1.2",
     "expo-linking": "~4.0.1",
     "expo-router": "^1.0.0",
+    "expo-screen-orientation": "^6.0.5",
     "expo-status-bar": "~1.4.4",
     "react": "18.2.0",
     "react-native": "0.71.8",
@@ -29,8 +36,9 @@
     "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "~2.9.0",
     "react-native-linear-gradient": "^2.8.0",
-    "react-native-safe-area-context": "^4.5.0",
-    "react-native-screens": "~3.20.0"
+    "react-native-safe-area-context": "4.5.0",
+    "react-native-screens": "~3.20.0",
+    "react-native-svg": "^13.11.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"
